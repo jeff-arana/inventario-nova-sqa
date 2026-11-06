@@ -52,3 +52,9 @@ Los documentos de lectura y los reportes están en `Documentos/` dentro del ZIP 
 
 ## Inicio sencillo en Windows
 Consulta `LEEME_PRIMERO_PASOS.txt` y ejecuta `00_VERIFICAR_WINDOWS.cmd` antes de `01_SUBIR_A_GITHUB.cmd`.
+
+## Control de calidad
+
+El proyecto Inventario Nova incorpora pruebas automatizadas, análisis estático y medición de cobertura mediante GitHub Actions y SonarQube Cloud.
+
+El pipeline verifica las etapas build, test, analyze y report antes de integrar cambios al proyecto.

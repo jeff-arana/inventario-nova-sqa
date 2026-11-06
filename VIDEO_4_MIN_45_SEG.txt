@@ -1,0 +1,37 @@
+PREPARAR VIDEO CON OBS (SIN VOZ):
+A. Abre OBS, en Sources/+ agrega Display Capture / Captura de pantalla.
+B. En Settings > Video selecciona resolución 1280x720 y 30 FPS.
+C. Settings > Output > Recording: formato MP4 (si tu OBS recomienda MKV,
+   usa File > Remux Recordings para obtener MP4 al final).
+D. Desactiva las fuentes de audio si quieres grabar sin voz.
+E. Graba tu ESCRITORIO, no una presentación.
+
+TIEMPOS DEL VIDEO: 4:45 (TOTAL 285 SEGUNDOS)
+00:00 - 00:40  VS Code y README, aplicación y objetivo del proyecto.
+00:40 - 02:30  Mostrar rama, cambio, pull request, fallo y corrección,
+               y los jobs build/test/analyze/report en GitHub (110 s).
+02:30 - 03:25  SonarQube Cloud en el navegador: cobertura, bugs,
+               code smells y duplicación (55 s).
+03:25 - 04:05  Tabla de métricas (archivo docs/Reporte-Mejora.md) y resultados
+               reales del workflow; antes/después sin números inventados (40 s).
+04:05 - 04:45  Conclusiones visibles en docs/SQA-Plan.md o notas de editor:
+               lo aprendido, dificultad y corrección (40 s).
+
+PUNTO CLAVE: las cifras de Sonar y la cobertura finales se copian del panel
+cuando ya terminó el análisis. No hay que escribir números al azar.
+
+PROBLEMAS COMUNES:
+- 01 falla: repo debe existir, estar vacío y ser de tu usuario.
+- Git pide contraseña: completa el inicio de sesión por navegador.
+- Actions no aparece: comprueba que el archivo .github/workflows/ci.yml esté subido.
+- Sonar no aparece: comprueba SONAR_TOKEN y las variables y apaga Automatic Analysis.
+- Pipeline falla antes del cambio: abre la etapa y revisa el error real antes
+  de usar 02 y 03. No llames aprobado a un pipeline fallido.
+- Rama ya existe: no repitas 02; entra en el PR y continúa con 03 si está rojo.
+- Para ver un failure útil, en el PR abre Checks > test > "núcleo: estado agotado".
+
+ENLACES:
+https://github.com/new
+https://sonarcloud.io/
+https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches
+https://docs.sonarsource.com/sonarqube-cloud/getting-started/github

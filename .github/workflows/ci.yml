@@ -1,0 +1,123 @@
+name: SQA - CI y Quality Gates
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Instalar y verificar backend
+        run: npm install --prefix backend && npm run check --prefix backend
+      - name: Construir frontend React
+        run: npm install --prefix frontend && npm run build --prefix frontend
+      - uses: actions/upload-artifact@v4
+        with: {name: frontend-build, path: frontend/dist, retention-days: 7}
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_password
+          MYSQL_DATABASE: inventario_nova
+          MYSQL_USER: nova_user
+          MYSQL_PASSWORD: ci_only_password
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root -pci_root_password"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Instalar dependencias
+        run: npm install --prefix backend && npm install --prefix frontend
+      - name: Preparar esquema y datos MySQL
+        run: mysql -h 127.0.0.1 -P 3306 -u root -pci_root_password < database/init.sql
+      - name: Pruebas Jest / Supertest + cobertura mínima 60%
+        run: npm run test:ci --prefix backend
+        env:
+          NODE_ENV: test
+          DB_INTEGRATION: "1"
+          DB_HOST: 127.0.0.1
+          DB_USER: nova_user
+          DB_PASSWORD: ci_only_password
+          DB_NAME: inventario_nova
+      - name: React Testing Library + cobertura mínima 60%
+        run: npm run test:ci --prefix frontend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: |
+            backend/coverage/
+            frontend/coverage/
+          retention-days: 14
+  analyze:
+    name: analyze
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Instalar dependencias para ESLint
+        run: npm install --prefix backend && npm install --prefix frontend
+      - name: ESLint - falla ante errores
+        run: npm run lint
+      - uses: actions/download-artifact@v4
+        with: {name: coverage-reports, path: .}
+      - name: Validar mínimos en informes reales
+        run: node scripts/check-coverage.mjs
+      - name: Comprobar credenciales Sonar disponibles
+        id: sonar_config
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_PROJECT_KEY" ] && [ -n "$SONAR_ORGANIZATION" ]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'Sonar no configurado: se mantienen los quality gates locales.'
+          fi
+      - name: SonarCloud / SonarQube Cloud (requiere configuración)
+        if: steps.sonar_config.outputs.enabled == 'true'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+        run: |
+          npx --yes @sonar/scan -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.organization="$SONAR_ORGANIZATION" -Dsonar.qualitygate.wait=true
+  report:
+    name: report
+    needs: [build, test, analyze]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resumen de cumplimiento
+        env:
+          BUILD: ${{ needs.build.result }}
+          TEST: ${{ needs.test.result }}
+          ANALYZE: ${{ needs.analyze.result }}
+        run: |
+          echo '## SQA - Estado de etapas' >> "$GITHUB_STEP_SUMMARY"
+          echo '| Etapa | Resultado |' >> "$GITHUB_STEP_SUMMARY"
+          echo '|---|---|' >> "$GITHUB_STEP_SUMMARY"
+          echo "| build | $BUILD |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| test | $TEST |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| analyze | $ANALYZE |" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Cobertura mínima requerida: 60% en líneas, sentencias, funciones y ramas.' >> "$GITHUB_STEP_SUMMARY"
+          test "$BUILD" = success && test "$TEST" = success && test "$ANALYZE" = success

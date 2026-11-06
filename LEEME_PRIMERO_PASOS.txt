@@ -1,0 +1,85 @@
+INVENTARIO NOVA | GUIA MINIMA PARA EL VIDEO REAL
+=============================================
+
+VAS A NECESITAR:
+- Una cuenta de GitHub, una cuenta de SonarQube Cloud (entrar con GitHub)
+- Git para Windows: https://git-scm.com/downloads/win
+- OBS Studio para grabar: https://obsproject.com/
+- VS Code (recomendado, opcional para subir): https://code.visualstudio.com/
+
+PRIMERA VEZ, EN ORDEN EXACTO:
+
+PASO 1. Descomprime este ZIP y abre 00_VERIFICAR_WINDOWS.cmd.
+PASO 2. Entra a https://github.com/new, pon inventario-nova-sqa, selecciona Public,
+        y NO marques README, .gitignore ni License. Pulsa Create repository.
+PASO 3. Abre 01_SUBIR_A_GITHUB.cmd (doble clic), escribe usuario, nombre y correo,
+        e inicia sesión cuando Git te muestre el navegador.
+        Si aparece error en rojo, toma foto para recibir ayuda.
+PASO 4. Entra a https://sonarcloud.io/ (o la región que corresponda) y pulsa Log in with GitHub.
+        Importa el repositorio inventario-nova-sqa.
+        IMPORTANTE: en Sonar > Project > Administration > Analysis Method,
+        usa CI-based analysis y apaga Automatic Analysis si aparece activado.
+        Nota: El repo ya tiene sonar-project.properties.
+PASO 5. En Sonar copia estas DOS CLAVES desde Project Information:
+        PROJECT KEY y ORGANIZATION KEY. En My Account > Security genera un TOKEN.
+        El token es privado: no lo pongas en el código ni lo compartas.
+PASO 6. En GitHub abre tu repo > Settings > Secrets and variables > Actions:
+        (A) pestaña Secrets: New repository secret
+            Name: SONAR_TOKEN / Secret: pega el token de Sonar.
+        (B) pestaña Variables: New repository variable
+            Name: SONAR_PROJECT_KEY / Value: pega Project key.
+        (C) pestaña Variables: New repository variable
+            Name: SONAR_ORGANIZATION / Value: pega Organization key.
+        Si el panel Sonar no muestra los mismos nombres, copia el valor exacto.
+PASO 7. En GitHub entra en Actions > SQA - CI y Quality Gates. Abre un run en main.
+        Revisa los jobs build, test, analyze, report. Si analyze dice que Sonar
+        no está configurado, vuelve al paso 6. Si aparece rojo inesperado,
+        abre el job fallido y busca el mensaje de error (NO lo ocultes).
+PASO 8. Captura las pruebas APROBADAS y el dashboard real de Sonar.
+PASO 9. Ejecuta 02_PROVOCAR_FALLO_Y_ABRIR_PR.cmd. En GitHub abre el botón
+        Compare & pull request y confirma Create pull request (main <- demo/pruebas-sqa).
+        Espera a que termine y captura el TEST ROJO del PR.
+PASO 10. SIN cerrar ni crear otro PR, ejecuta 03_CORREGIR_EL_FALLO.cmd.
+         Actualiza la página del MISMO PR, captura los checks nuevos en verde.
+PASO 11. Para proteger main: GitHub > Settings > Branches > Add classic branch
+         protection rule > Branch name pattern main > Require pull request before
+         merging > Require status checks to pass > marca build, test, analyze y report.
+         Los checks aparecen después de ejecutarse. Guarda la regla.
+
+PREPARAR VIDEO CON OBS (SIN VOZ):
+A. Abre OBS, en Sources/+ agrega Display Capture / Captura de pantalla.
+B. En Settings > Video selecciona resolución 1280x720 y 30 FPS.
+C. Settings > Output > Recording: formato MP4 (si tu OBS recomienda MKV,
+   usa File > Remux Recordings para obtener MP4 al final).
+D. Desactiva las fuentes de audio si quieres grabar sin voz.
+E. Graba tu ESCRITORIO, no una presentación.
+
+TIEMPOS DEL VIDEO: 4:45 (TOTAL 285 SEGUNDOS)
+00:00 - 00:40  VS Code y README, aplicación y objetivo del proyecto.
+00:40 - 02:30  Mostrar rama, cambio, pull request, fallo y corrección,
+               y los jobs build/test/analyze/report en GitHub (110 s).
+02:30 - 03:25  SonarQube Cloud en el navegador: cobertura, bugs,
+               code smells y duplicación (55 s).
+03:25 - 04:05  Tabla de métricas (archivo docs/Reporte-Mejora.md) y resultados
+               reales del workflow; antes/después sin números inventados (40 s).
+04:05 - 04:45  Conclusiones visibles en docs/SQA-Plan.md o notas de editor:
+               lo aprendido, dificultad y corrección (40 s).
+
+PUNTO CLAVE: las cifras de Sonar y la cobertura finales se copian del panel
+cuando ya terminó el análisis. No hay que escribir números al azar.
+
+PROBLEMAS COMUNES:
+- 01 falla: repo debe existir, estar vacío y ser de tu usuario.
+- Git pide contraseña: completa el inicio de sesión por navegador.
+- Actions no aparece: comprueba que el archivo .github/workflows/ci.yml esté subido.
+- Sonar no aparece: comprueba SONAR_TOKEN y las variables y apaga Automatic Analysis.
+- Pipeline falla antes del cambio: abre la etapa y revisa el error real antes
+  de usar 02 y 03. No llames aprobado a un pipeline fallido.
+- Rama ya existe: no repitas 02; entra en el PR y continúa con 03 si está rojo.
+- Para ver un failure útil, en el PR abre Checks > test > "núcleo: estado agotado".
+
+ENLACES:
+https://github.com/new
+https://sonarcloud.io/
+https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches
+https://docs.sonarsource.com/sonarqube-cloud/getting-started/github

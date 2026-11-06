@@ -1,0 +1,14 @@
+{
+  "name": "inventario-nova-sqa",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Adaptación académica de CRUD de inventario con pipeline de aseguramiento de calidad",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "build": "npm run build --prefix frontend && npm run check --prefix backend",
+    "test": "npm run test:ci --prefix backend && npm run test:ci --prefix frontend",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "test:core": "node --test backend/tests/validation.node.test.mjs"
+  },
+  "engines": {"node": ">=20"}
+}

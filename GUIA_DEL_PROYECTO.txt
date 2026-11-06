@@ -1,0 +1,20 @@
+INVENTARIO NOVA | ASEGURAMIENTO DE CALIDAD
+
+Sistema de inventario con React, Express y MySQL.
+
+INICIO RÁPIDO
+1. Copiar .env.example como .env y configurar las credenciales locales.
+2. Ejecutar docker compose up --build -d.
+3. Acceder a http://localhost:8080.
+
+DOCUMENTACIÓN
+README.md: arquitectura, herramientas y funcionamiento general.
+docs/: plan SQA, matriz de pruebas, reportes y manuales.
+.github/workflows/ci.yml: build, test, analyze y report.
+informes/: informe, presentación y cuaderno de capturas.
+video/: explicación audiovisual.
+
+PRUEBAS
+El módulo de validación tiene nueve casos aprobados en la revisión local.
+El resto de suites y las reglas CI/CD se encuentran en el código fuente.
+Los indicadores del cuadro comparativo son valores de ejemplo.
